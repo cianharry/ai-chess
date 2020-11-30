@@ -3,6 +3,8 @@ import java.awt.event.*;
 import java.util.*;
 import javax.swing.*;
 
+
+
 /*
 	This class can be used as a starting point for creating your Chess game project. The only piece that
 	has been coded is a white pawn...a lot done, more to do!
@@ -114,7 +116,7 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 		
 		whiteTurn = true;
 		gameOver = false;
-    }
+	}
 
 	/*
 		This method checks if there is a piece present on a particular square.
@@ -129,24 +131,30 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 		}
 	}
 
-
-	/*private Boolean isCheckMate(int x, int y){
-		Boolean queen;
-		Component c1 = chessBoard.findComponentAt(x, y);
-		JLabel awaitingPiece = (JLabel)c1;
-		String tmp1 = awaitingPiece.getIcon().toString();
-		if(tmp1.contains("Queen")){
-			queen = true;
+	private Stack<Square> findWhitePieces(){
+		Stack<Square> squares = new Stack<Square>();
+		String icon;
+		int x,y;
+		String pieceName;
+		for(int i=0; i<600; i+=75){
+			for(int j=0; j<600; j+=75){
+				y = i/75;
+				x = j/75;
+				Component tmp = chessBoard.findComponentAt(j, i);
+				if(tmp instanceof JLabel){
+					chessPiece = (JLabel)tmp;
+					icon = chessPiece.getIcon().toString();
+					pieceName = icon.substring(0, (icon.length()-4));
+					if(pieceName.contains("White")){
+						Square stmp = new Square(x, y, pieceName);
+						squares.push(stmp);
+					}
+				}
+			}
 		}
-		else{
-			queen = true;
-		}
-		return queen;
-	}*/
+		return squares;
+	}
 
-	/*
-		CheckMate
-	*/
 	private void CheckMate(String winner)
     {
         gameOver = true;
