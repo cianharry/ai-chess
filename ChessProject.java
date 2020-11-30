@@ -2,6 +2,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 import javax.swing.*;
+import javax.swing.border.Border;
 
 
 
@@ -154,6 +155,110 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 		}
 		return squares;
 	}
+	
+	private Stack<Square> getWhiteAttackingSquares(Stack pieces){
+		Stack<Square> piece = new Stack<Square>();
+		while(!pieces.empty()){
+			Square s = (Square)pieces.pop();
+			String tmpString = s.getName();
+			if(tmpString.contains("Knight")){
+				Stack<Square> tempK = getKnightMoves(s.getXco(), s.getYco(), s.getName());
+				while(!tempK.empty()){
+					Square tempKnight = (Square)tempK.pop();
+					piece.push(tempKnight);
+				}
+			}
+			/*
+			else if(tmpString.contains("Pawn")){
+				Stack tempP = getPawnMoves(s.getXco(), s.getYco(), s.getName());
+				while(!tempP.empty()){
+					Square tempPawn = (Square)tempP.pop();
+					piece.push(tempPawn);
+				}
+			}
+			
+			else if(tmpString.contains("Bishup")){
+				Stack tempB = getBishupMoves(s.getXco(), s.getYco(), s.getName());
+				while(!tempB.empty()){
+					Square tempBishup = (Square)tempB.pop();
+					piece.push(tempBishup);
+				}
+			}
+			*/
+		}
+		return piece;
+	}
+	
+
+	/*
+		Getting all the moves for the Knight piece
+
+		The Knight can move in an L shape
+	*/
+	private Stack<Square> getKnightMoves(int x, int y, String piece){
+		Stack<Square> moves = new Stack<Square>();
+		Stack<Square> attacking = new Stack<Square>();
+
+		Square s = new Square(x+1, y+2);
+		moves.push(s);
+		Square s1 = new Square(x+1, y-2);
+		moves.push(s1);
+		Square s2 = new Square(x-1, y+2);
+		moves.push(s2);
+		Square s3 = new Square(x-1, y-2);
+		moves.push(s3);
+		Square s4 = new Square(x+2, y+1);
+		moves.push(s4);
+		Square s5 = new Square(x+2, y-1);
+		moves.push(s5);
+		Square s6 = new Square(x-2, y+1);
+		moves.push(s6);
+		Square s7 = new Square(x-2, y-1);
+		moves.push(s7);
+
+		for(int i=0; i<8; i++){
+			Square tmp = (Square)moves.pop();
+			if((tmp.getXco()<0)||(tmp.getXco()>7)||(tmp.getYco()<0)||(tmp.getYco()>7)){
+
+			}
+			else if(piecePresent(((tmp.getXco()*75)+20), (((tmp.getYco()*75)+20)))){
+				if(piece.contains("White")){
+					if(checkWhiteOponent(((tmp.getXco()*75)+20), ((tmp.getYco()*75)+20))){
+						attacking.push(tmp);
+					}
+					else{
+						System.out.println("Its one of our own pieces");
+					}
+				}
+				else{
+					if(checkBlackOponent(tmp.getXco(), tmp.getYco())){
+						attacking.push(tmp);
+					}
+				}
+			}
+			else{
+				attacking.push(tmp);
+			}
+		}
+		Stack tmp = attacking;
+		colorSquares(tmp);
+		return attacking;
+	}
+
+	/*
+		A method to color the squares
+	*/
+
+	private void colorSquares(Stack squares){
+		Border greenBorder = BorderFactory.createLineBorder(Color.GREEN,3);
+		while(!squares.empty()){
+			Square s = (Square)squares.pop();
+			int location = s.getXco() + ((s.getYco())*8);
+			JPanel panel = (JPanel)chessBoard.getComponent(location);
+			panel.setBorder(greenBorder);
+		}
+	}
+
 
 	private void CheckMate(String winner)
     {
