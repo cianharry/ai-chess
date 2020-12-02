@@ -118,6 +118,102 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 		whiteTurn = true;
 		gameOver = false;
 	}
+	/*
+	Defining the class for the square object 
+	*/
+	class Square {
+		public int xCoord;
+		public int yCoord;
+		public String pieceName;
+	
+		public Square(int x, int y, String name){
+			xCoord = x;
+			yCoord = y;
+			pieceName = name;
+		}
+	
+		public Square(int x, int y){
+			xCoord = x;
+			yCoord = y;
+			pieceName = "";
+		}
+	
+		public int getXco(){
+			return xCoord;
+		}
+	
+		public int getYco(){
+			return yCoord;
+		}
+	
+		public String getName(){
+			return pieceName;
+		}
+	}
+
+	/*
+	Defining the class for the move object 
+	*/
+	class Move{
+		Square start;
+		Square landing;
+	  
+		public Move(Square x, Square y){
+		  start = x;
+		  landing = y;
+		}
+	  
+		public Move(){
+		  
+		}
+	  
+		public Square getStart(){
+		  return start;
+		}
+	  
+		public Square getLanding(){
+		  return landing;
+		}
+	  }
+
+	/*
+	Defining the class for the AI Agent object 
+	*/
+	public class AIAgent{
+		Random rand;
+	  
+		public AIAgent(){
+		  rand = new Random();
+		}
+	  
+	  /*
+		The method randomMove takes as input a stack of potential moves that the AI agent
+		can make. The agent uses a rondom number generator to randomly select a move from
+		the inputted Stack and returns this to the calling agent.
+	  */
+	  
+		public Move randomMove(Stack<Move> possibilities){
+		
+			int moveID = rand.nextInt(possibilities.size());
+			System.out.println("Agent randomly selected move : "+moveID);
+			for(int i=1;i < (possibilities.size()-(moveID));i++){
+			possibilities.pop();
+			}
+			Move selectedMove = (Move)possibilities.pop();
+			return selectedMove;
+		}
+		
+		public Move nextBestMove(Stack<Move> possibilities){
+			Move selectedMove = new Move();
+			return selectedMove;
+		}
+		
+		public Move twoLevelsDeep(Stack<Move> possibilities){
+			Move selectedMove = new Move();
+			return selectedMove;
+		}
+	}
+
 
 	/*
 		This method checks if there is a piece present on a particular square.
@@ -240,7 +336,7 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 				attacking.push(tmp);
 			}
 		}
-		Stack tmp = attacking;
+		Stack<Square> tmp = attacking;
 		colorSquares(tmp);
 		return attacking;
 	}
@@ -249,7 +345,7 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 		A method to color the squares
 	*/
 
-	private void colorSquares(Stack squares){
+	private void colorSquares(Stack<Square> squares){
 		Border greenBorder = BorderFactory.createLineBorder(Color.GREEN,3);
 		while(!squares.empty()){
 			Square s = (Square)squares.pop();
@@ -266,11 +362,11 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
         if (winner.contains("White"))
         {
             JOptionPane.showMessageDialog(null, "White wins");
-            System.exit(2);
+            System.exit(5);
         } else
         {
             JOptionPane.showMessageDialog(null, "Black wins");
-            System.exit(2);
+            System.exit(5);
         }
 	}
 	
