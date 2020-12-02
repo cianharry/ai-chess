@@ -340,6 +340,141 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 		colorSquares(tmp);
 		return attacking;
 	}
+	/*
+	Method to return all the squares that a Rook can move to. The Rook can either move in an x direction or
+	in a y direction as long as there is nothing in the way and it can take its opponents piece but not its
+	own piece. As seen in the below grid the Rook can either move in a horizontal direction (x changing value)
+	or in a vertical movement (y changing direction)
+
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+								|             |           |(x, y-N) |           |           |
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+								|             |           |(x, y-2) |           |           |
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+								|             |           |(x, y-1) |           |           |
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+								| (x-N, y)    |(x-1, y)   | (x, y)  |(x+1, y)   |(x+N, y)   |
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+								|             |           | (x, y+1)|           |           |
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+								|             |           |(x, y+2) |           |           |
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+								|             |           |(x, y+N) |           |           |
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+	*/
+	
+	private Stack<Move> getRookMoves(int x, int y, String piece){
+		Square startingSquare = new Square(x, y, piece);
+		Stack<Move> moves = new Stack<Move>();
+		Move validM, validM2, validM3, validM4;
+		/*
+			There are four possible directions that the Rook can move to:
+			- the x value is increasing
+			- the x value is decreasing
+			- the y value is increasing
+			- the y value is decreasing
+
+			Each of these movements should be catered for. The loop guard is set to incriment up to the maximun number of squares.
+			On each iteration of the first loop we are adding the value of i to the current x coordinate.
+			We make sure that the new potential square is going to be on the board and if it is we create a new square and a new potential
+			move (originating square, new square).If there are no pieces present on the potential square we simply add it to the Stack
+			of potential moves.
+			If there is a piece on the square we need to check if its an opponent piece. If it is an opponent piece its a valid move, but we
+			must break out of the loop using the Java break keyword as we can't jump over the piece and search for squares. If its not
+			an opponent piece we simply break out of the loop.
+
+			This cycle needs to happen four times for each of the possible directions of the Rook.
+		*/
+		for(int i=1;i < 8;i++){
+			int tmpx = x+i;
+			int tmpy = y;
+			if(!(tmpx > 7 || tmpx < 0)){
+			Square tmp = new Square(tmpx, tmpy, piece);
+			validM = new Move(startingSquare, tmp);
+			if(!piecePresent(((tmp.getXco()*75)+20), (((tmp.getYco()*75)+20)))){
+				moves.push(validM);
+			}
+			else{
+				if(checkWhiteOponent(((tmp.getXco()*75)+20), ((tmp.getYco()*75)+20))){
+					moves.push(validM);
+					break;
+					}
+					else{
+					break;
+					}
+				}
+			}
+		}//end of the loop with x increasing and Y doing nothing...
+		for(int j=1;j < 8;j++){
+			int tmpx1 = x-j;
+			int tmpy1 = y;
+			if(!(tmpx1 > 7 || tmpx1 < 0)){
+				Square tmp2 = new Square(tmpx1, tmpy1, piece);
+				validM2 = new Move(startingSquare, tmp2);
+				if(!piecePresent(((tmp2.getXco()*75)+20), (((tmp2.getYco()*75)+20)))){
+					moves.push(validM2);
+				}
+				else{
+					if(checkWhiteOponent(((tmp2.getXco()*75)+20), ((tmp2.getYco()*75)+20))){
+						moves.push(validM2);
+						break;
+					}
+					else{
+						break;
+					}
+				}
+			}
+		}//end of the loop with x increasing and Y doing nothing...
+		for(int k=1;k < 8;k++){
+			int tmpx3 = x;
+			int tmpy3 = y+k;
+			if(!(tmpy3 > 7 || tmpy3 < 0)){
+				Square tmp3 = new Square(tmpx3, tmpy3, piece);
+				validM3 = new Move(startingSquare, tmp3);
+				if(!piecePresent(((tmp3.getXco()*75)+20), (((tmp3.getYco()*75)+20)))){
+					moves.push(validM3);
+				}
+				else{
+					if(checkWhiteOponent(((tmp3.getXco()*75)+20), ((tmp3.getYco()*75)+20))){
+						moves.push(validM3);
+						break;
+					}
+					else{
+						break;
+					}
+				}
+			}
+		}//end of the loop with x increasing and Y doing nothing...
+		for(int l=1;l < 8;l++){
+			int tmpx4 = x;
+			int tmpy4 = y-l;
+			if(!(tmpy4 > 7 || tmpy4 < 0)){
+				Square tmp4 = new Square(tmpx4, tmpy4, piece);
+				validM4 = new Move(startingSquare, tmp4);
+				if(!piecePresent(((tmp4.getXco()*75)+20), (((tmp4.getYco()*75)+20)))){
+					moves.push(validM4);
+				}
+				else{
+					if(checkWhiteOponent(((tmp4.getXco()*75)+20), ((tmp4.getYco()*75)+20))){
+						moves.push(validM4);
+						break;
+					}
+					else{
+						break;
+					}
+				}
+			}
+		}//end of the loop with x increasing and Y doing nothing...
+		return moves;
+		}// end of get Rook Moves.
 
 	/*
 		A method to color the squares
