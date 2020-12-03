@@ -251,19 +251,82 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 		}
 		return squares;
 	}
+
+
+	/*
+	Method to check if there is a BlackKing in the surrounding squares of a given Square.
+	The method should return true if there is no King in any of the squares surrounding
+	the square that was submitted to the method. The method checks the grid below:
+
+
+											_|_____________|_________|_____________|_
+											|             |         |             |
+											|(x-75, y-75) |(x, y-75)|(x+75, y-75) |
+											_|_____________|_________|_____________|_
+											|             |         |             |
+											|(x-75, y)    | (x, y)  |(x+75, y)    |
+											_|_____________|_________|_____________|_
+											|             |         |             |
+											|(x-75, y+75) |(x, y+75)|(x+75, y+75) |
+											_|_____________|_________|_____________|_
+											|             |         |             |
+
+
+	*/
+	private Boolean checkSurroundingSquares(Square s){
+		Boolean possible = false;
+		int x = s.getXco()*75;
+		int y = s.getYco()*75;
+		Square s1 = new Square(x+75, y);
+		Square s2 = new Square(x-75, y);
+		Square s3 = new Square(x, y+75);
+		Square s4 = new Square(x, y-75);
+		Square s5 = new Square(x+75, y+75);
+		Square s6 = new Square(x-75, y+75);
+		Square s7 = new Square(x+75, y-75);
+		Square s8 = new Square(x-75, y-75);
+		if(!((s1.getName().contains("BlackKing"))||
+			((s2.getName().contains("BlackKing"))||
+			((s3.getName()).contains("BlackKing"))||
+			((s4.getName()).contains("BlackKing"))||
+			((s5.getName()).contains("BlackKing"))||
+			((s6.getName()).contains("BlackKing"))||
+			((s7.getName()).contains("BlackKing"))||
+			((s8.getName()).contains("BlackKing"))))){
+			possible = true;
+		}
+		return possible;
+	}
+
 	
-	private Stack<Square> getWhiteAttackingSquares(Stack pieces){
+	
+	private Stack<Square> getWhiteAttackingSquares(Stack<Square> pieces){
 		Stack<Square> piece = new Stack<Square>();
 		while(!pieces.empty()){
 			Square s = (Square)pieces.pop();
 			String tmpString = s.getName();
-			if(tmpString.contains("Knight")){
+			if(tmpString.contains("King")){
+				Stack<Move> tempKg = getKingMoves(s.getXco(), s.getYco(), s.getName());
+				while(!tempKg.empty()){
+					Square tempKing = (Square)tempKg.pop().getLanding();
+					piece.push(tempKing);
+				}
+			}
+			else if(tmpString.contains("Knight")){
 				Stack<Move> tempK = getKnightMoves(s.getXco(), s.getYco(), s.getName());
 				while(!tempK.empty()){
 					Square tempKnight = (Square)tempK.pop().getLanding();
 					piece.push(tempKnight);
 				}
 			}
+			else if(tmpString.contains("Rook")){
+				Stack<Move> tempP = getRookMoves(s.getXco(), s.getYco(), s.getName());
+				while(!tempP.empty()){
+					Square tempPawn = (Square)tempP.pop().getLanding();
+					piece.push(tempPawn);
+				}
+			}
+
 			/*
 			else if(tmpString.contains("Pawn")){
 				Stack tempP = getPawnMoves(s.getXco(), s.getYco(), s.getName());
@@ -272,7 +335,8 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 					piece.push(tempPawn);
 				}
 			}
-			
+			*/
+			/*
 			else if(tmpString.contains("Bishup")){
 				Stack tempB = getBishupMoves(s.getXco(), s.getYco(), s.getName());
 				while(!tempB.empty()){
@@ -284,7 +348,163 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 		}
 		return piece;
 	}
-	
+	/*
+	Method to return all the squares that a King can move to. The King can move either one square in an x direction or
+	one square in a y direction. it can take its opponents piece but not its own piece. As seen in the below grid the Rook can either move in a horizontal direction (x changing value)
+	or in a vertical movement (y changing direction)
+
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+								|             |           |          |           |           |
+								-|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+								|             |           |          |           |           |
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+								|             |           |(x, y-1) |           |           |
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+								|             |(x-1, y)   | (x, y)  |(x+1, y)   |           |
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+								|             |           | (x, y+1)|           |           |
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+								|             |           |         |           |           |
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+								|             |           |         |           |           |
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+	*/
+
+	private Stack<Move> getKingMoves(int x, int y, String piece){
+		Square startingSquare = new Square(x, y, piece);
+		Stack<Move> moves = new Stack<Move>();
+		Move validM, validM2, validM3, validM4;
+		int tmpx1 = x+1;
+		int tmpx2 = x-1;
+		int tmpy1 = y+1;
+		int tmpy2 = y-1;
+		
+		if(!((tmpx1 > 7))){
+			Square tmp = new Square(tmpx1, y, piece);
+			Square tmp1 = new Square(tmpx2, tmpy1, piece);
+			Square tmp2 = new Square(tmpx2, tmpy2, piece);
+			if(checkSurroundingSquares(tmp)){
+				validM = new Move(startingSquare, tmp);
+				if(!piecePresent(((tmp.getXco()*75)+20), (((tmp.getYco()*75)+20)))){
+					moves.push(validM);
+				}
+				else{
+					System.out.println("The values that we are going to be looking at are : "+((tmp.getXco()*75)+20)+" and the y value is : "+((tmp.getYco()*75)+20));
+					if(checkWhiteOponent(((tmp.getXco()*75)+20), (((tmp.getYco()*75)+20)))){
+						moves.push(validM);
+					}
+				}
+			}
+			if(!(tmpy1 > 7)){
+				if(checkSurroundingSquares(tmp1)){
+					validM2 = new Move(startingSquare, tmp1);
+					if(!piecePresent(((tmp1.getXco()*75)+20), (((tmp1.getYco()*75)+20)))){
+						moves.push(validM2);
+					}
+					else{
+						System.out.println("The values that we are going to be looking at are : "+((tmp1.getXco()*75)+20)+" and the y value is : "+((tmp1.getYco()*75)+20));
+						if(checkWhiteOponent(((tmp1.getXco()*75)+20), (((tmp1.getYco()*75)+20)))){
+						moves.push(validM2);
+						}
+					}
+				}
+			}
+			if(!(tmpy2 < 0)){
+				if(checkSurroundingSquares(tmp2)){
+					validM3 = new Move(startingSquare, tmp2);
+					if(!piecePresent(((tmp2.getXco()*75)+20), (((tmp2.getYco()*75)+20)))){
+						moves.push(validM3);
+					}
+					else{
+						System.out.println("The values that we are going to be looking at are : "+((tmp2.getXco()*75)+20)+" and the y value is : "+((tmp2.getYco()*75)+20));
+						if(checkWhiteOponent(((tmp2.getXco()*75)+20), (((tmp2.getYco()*75)+20)))){
+						moves.push(validM3);
+						}
+					}
+				}
+			}
+		}
+		if(!((tmpx2 < 0))){
+			Square tmp3 = new Square(tmpx2, y, piece);
+			Square tmp4 = new Square(tmpx2, tmpy1, piece);
+			Square tmp5 = new Square(tmpx2, tmpy2, piece);
+			if(checkSurroundingSquares(tmp3)){
+				validM = new Move(startingSquare, tmp3);
+				if(!piecePresent(((tmp3.getXco()*75)+20), (((tmp3.getYco()*75)+20)))){
+					moves.push(validM);
+				}
+				else{
+					if(checkWhiteOponent(((tmp3.getXco()*75)+20), (((tmp3.getYco()*75)+20)))){
+						moves.push(validM);
+					}
+				}
+			}
+			if(!(tmpy1 > 7)){
+				if(checkSurroundingSquares(tmp4)){
+					validM2 = new Move(startingSquare, tmp4);
+					if(!piecePresent(((tmp4.getXco()*75)+20), (((tmp4.getYco()*75)+20)))){
+						moves.push(validM2);
+					}
+					else{
+						if(checkWhiteOponent(((tmp4.getXco()*75)+20), (((tmp4.getYco()*75)+20)))){
+							moves.push(validM2);
+						}
+					}
+				}
+			}
+			if(!(tmpy2 < 0)){
+				if(checkSurroundingSquares(tmp5)){
+					validM3 = new Move(startingSquare, tmp5);
+					if(!piecePresent(((tmp5.getXco()*75)+20), (((tmp5.getYco()*75)+20)))){
+						moves.push(validM3);
+					}
+					else{
+						if(checkWhiteOponent(((tmp5.getXco()*75)+20), (((tmp5.getYco()*75)+20)))){
+							moves.push(validM3);
+						}
+					}
+				}
+			}
+		}
+
+		Square tmp7 = new Square(x, tmpy1, piece);
+		Square tmp8 = new Square(x, tmpy2, piece);
+		if(!(tmpy1 > 7)){
+			if(checkSurroundingSquares(tmp7)){
+				validM2 = new Move(startingSquare, tmp7);
+				if(!piecePresent(((tmp7.getXco()*75)+20), (((tmp7.getYco()*75)+20)))){
+					moves.push(validM2);
+				}
+				else{
+					if(checkWhiteOponent(((tmp7.getXco()*75)+20), (((tmp7.getYco()*75)+20)))){
+						moves.push(validM2);
+					}
+				}
+			}
+		}
+		if(!(tmpy2 < 0)){
+			if(checkSurroundingSquares(tmp8)){
+				validM3 = new Move(startingSquare, tmp8);
+				if(!piecePresent(((tmp8.getXco()*75)+20), (((tmp8.getYco()*75)+20)))){
+					moves.push(validM3);
+				}
+				else{
+					if(checkWhiteOponent(((tmp8.getXco()*75)+20), (((tmp8.getYco()*75)+20)))){
+						moves.push(validM3);
+					}
+				}
+			}
+		}
+		return moves;
+	}
 
 	/*
 		Getting all the moves for the Knight piece
@@ -481,6 +701,128 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 	}// end of get Rook Moves.
 
 	/*
+	Method to return all the squares that a Bishop can move to. As seen in the below grid, the Bishop
+	can move in a diagonal moement. There are essentially four different directions from a single
+	square that the Bishop can move along. The Bishop can move any distance along this diagonal
+	as long as there is nothing in the way. The Bishop can also take an opponent piece but cannot take its
+	own piece.
+
+
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+								|             |           |         |           |           |
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+								| (x-N, y-N)  |           |         |           |(x+N, y-N) |
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+								|             | (x-1, y-1)|         | (x+1, y-1)|           |
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+								|             |           | (x, y)  |           |           |
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+								|             |(x-1, y+1) |         | (x+1, y+1)|           |
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+								|(x-N, y+N)   |           |         |           |(x+N, y+N) |
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+								|             |           |         |           |           |
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+
+	*/
+
+	private Stack<Move> getBishupMoves(int x, int y, String piece){
+		Square startingSquare = new Square(x, y, piece);
+		Stack<Move> moves = new Stack<Move>();
+		Move validM, validM2, validM3, validM4;
+		for(int i=1;i < 8;i++){
+			int tmpx = x+i;
+			int tmpy = y+i;
+			if(!(tmpx > 7 || tmpx < 0 || tmpy > 7 || tmpy < 0)){
+				Square tmp = new Square(tmpx, tmpy, piece);
+				validM = new Move(startingSquare, tmp);
+				if(!piecePresent(((tmp.getXco()*75)+20), (((tmp.getYco()*75)+20)))){
+					moves.push(validM);
+				}
+				else{
+					if(checkWhiteOponent(((tmp.getXco()*75)+20), ((tmp.getYco()*75)+20))){
+						moves.push(validM);
+						break;
+					}
+					else{
+						break;
+					}
+				}
+			}
+		} // end of the first for Loop
+		for(int k=1; k<8; k++){
+			int tmpk = x+k;
+			int tmpy2 = y-k;
+			if(!(tmpk > 7 || tmpk < 0 || tmpy2 > 7 || tmpy2 < 0)){
+				Square tmpK1 = new Square(tmpk, tmpy2, piece);
+				validM2 = new Move(startingSquare, tmpK1);
+				if(!piecePresent(((tmpK1.getXco()*75)+20), (((tmpK1.getYco()*75)+20)))){
+					moves.push(validM2);
+				}
+				else{
+					if(checkWhiteOponent(((tmpK1.getXco()*75)+20), ((tmpK1.getYco()*75)+20))){
+						moves.push(validM2);
+						break;
+					}
+					else{
+						break;
+					}
+				}
+			}
+		}// end of the second for loop
+		for(int l=1;l < 8;l++){
+			int tmpL2 = x-l;
+			int tmpy3 = y+l;
+			if(!(tmpL2 > 7 || tmpL2 < 0 || tmpy3 > 7 || tmpy3 < 0)){
+				Square tmpLMov2 = new Square(tmpL2, tmpy3, piece);
+				validM3 = new Move(startingSquare, tmpLMov2);
+				if(!piecePresent(((tmpLMov2.getXco()*75)+20), (((tmpLMov2.getYco()*75)+20)))){
+					moves.push(validM3);
+				}
+				else{
+					if(checkWhiteOponent(((tmpLMov2.getXco()*75)+20), ((tmpLMov2.getYco()*75)+20))){
+						moves.push(validM3);
+						break;
+					}
+					else{
+						break;
+					}
+				}
+			}
+		}// end of the third for loop 
+		for(int n=1;n < 8;n++){
+			int tmpN2 = x-n;
+			int tmpy4 = y-n;
+			if(!(tmpN2 > 7 || tmpN2 < 0 || tmpy4 > 7 || tmpy4 < 0)){
+				Square tmpNmov2 = new Square(tmpN2, tmpy4, piece);
+				validM4 = new Move(startingSquare, tmpNmov2);
+				if(!piecePresent(((tmpNmov2.getXco()*75)+20), (((tmpNmov2.getYco()*75)+20)))){
+					moves.push(validM4);
+				}
+				else{
+					if(checkWhiteOponent(((tmpNmov2.getXco()*75)+20), ((tmpNmov2.getYco()*75)+20))){
+						moves.push(validM4);
+						break;
+					}
+					else{
+						break;
+					}
+				}
+			}
+		}// end of the forth loop
+		return moves;
+	}
+
+
+	/*
 		A method to color the squares
 	*/
 
@@ -520,7 +862,7 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 	/*
 		The method printStack takes in a Stack of Moves and prints out all possible moves.
 	*/
-	private void printStack(Stack input){
+	private void printStack(Stack<Move> input){
 	Move m;
 	Square s, l;
 	while(!input.empty()){
@@ -1062,6 +1404,7 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 					else{
 						if((startX-1 >=0)||(startX+1 <=7))
 						{
+							// LOOK OVER TAKING PAWNS TO THE LEFT & RIGHT
 							if((piecePresent(e.getX(), (e.getY())))&&((((newX == (startX+1)&&(startX+1<=7)))||((newX == (startX-1))&&(startX-1 >=0)))))
 							{
 								if(checkBlackOponent(e.getX(), e.getY()))
