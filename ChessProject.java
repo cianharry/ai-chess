@@ -312,6 +312,13 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 					piece.push(tempKing);
 				}
 			}
+			else if(tmpString.contains("Queen")){
+				Stack<Move> tempQ = getQueenMoves(s.getXco(), s.getYco(), s.getName());
+				while(!tempQ.empty()){
+					Square tempQueen = (Square)tempQ.pop().getLanding();
+					piece.push(tempQueen);
+				}
+			}
 			else if(tmpString.contains("Knight")){
 				Stack<Move> tempK = getKnightMoves(s.getXco(), s.getYco(), s.getName());
 				while(!tempK.empty()){
@@ -326,6 +333,13 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 					piece.push(tempPawn);
 				}
 			}
+			else if(tmpString.contains("Bishup")){
+				Stack<Move> tempB = getBishupMoves(s.getXco(), s.getYco(), s.getName());
+				while(!tempB.empty()){
+					Square tempBishup = (Square)tempB.pop().getLanding();
+					piece.push(tempBishup);
+				}
+			}
 
 			/*
 			else if(tmpString.contains("Pawn")){
@@ -333,15 +347,6 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 				while(!tempP.empty()){
 					Square tempPawn = (Square)tempP.pop();
 					piece.push(tempPawn);
-				}
-			}
-			*/
-			/*
-			else if(tmpString.contains("Bishup")){
-				Stack tempB = getBishupMoves(s.getXco(), s.getYco(), s.getName());
-				while(!tempB.empty()){
-					Square tempBishup = (Square)tempB.pop();
-					piece.push(tempBishup);
 				}
 			}
 			*/
@@ -381,7 +386,7 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 	private Stack<Move> getKingMoves(int x, int y, String piece){
 		Square startingSquare = new Square(x, y, piece);
 		Stack<Move> moves = new Stack<Move>();
-		Move validM, validM2, validM3, validM4;
+		Move validM, validM2, validM3;
 		int tmpx1 = x+1;
 		int tmpx2 = x-1;
 		int tmpy1 = y+1;
@@ -507,6 +512,54 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 	}
 
 	/*
+	Method to return all the squares that a Queen can move to. As seen in the below grid, the Queen can move as either the BIshop OR the Rook
+
+
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+								|             |           | (x, y-3)|           |           |
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+								| (x-N, y-N)  |           | (x, y-2)|           | (x+N, y-N)|
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+								|             | (x-1, y-1)| (x, y-1)| (x+1, y-1)|           |
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+								|  (x-2, y)   | (x-1, y)  | (x, y)  | (x+1, y)  | (x+2, y)  |
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+								|             |(x-1, y+1) | (x, y+1)| (x+1, y+1)|           |
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+								| (x-N, y+N)  |           | (x, y+2)|           | (x+N, y+N)|
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+								|             |           | (x, y+3)|           |           |
+								_|_____________|___________|_________|___________|___________|_
+								|             |           |         |           |           |
+
+	*/
+	private Stack<Move> getQueenMoves(int x, int y, String piece){
+		Stack<Move> completeMoves = new Stack<Move>();
+  		Stack<Move> tmpMoves = new Stack<Move>();
+		Move tmp;
+		
+		tmpMoves = getRookMoves(x, y, piece);
+		while(!tmpMoves.empty()){
+			tmp = (Move)tmpMoves.pop();
+			completeMoves.push(tmp);
+		}
+		tmpMoves = getBishupMoves(x, y, piece);
+		while(!tmpMoves.empty()){
+			tmp = (Move)tmpMoves.pop();
+			completeMoves.push(tmp);
+		}
+		getLandingSquares(completeMoves);
+		return completeMoves;
+	}
+
+	/*
 		Getting all the moves for the Knight piece
 
 		The Knight can move in an L shape
@@ -543,7 +596,6 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 				if(piece.contains("White")){
 					if(checkWhiteOponent(((tmp.getXco()*75)+20), ((tmp.getYco()*75)+20))){
 						attacking.push(tmpMove);
-						moves.push(tmp);
 					}
 					else{
 						System.out.println("Its one of our own pieces");
@@ -552,16 +604,14 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 				else{
 					if(checkBlackOponent(tmp.getXco(), tmp.getYco())){
 						attacking.push(tmpMove);
-						moves.push(tmp);
 					}
 				}
 			}
 			else{
 				attacking.push(tmpMove);
-				moves.push(tmp);
 			}
 		}
-		colorSquares(moves);
+		getLandingSquares(attacking);
 		return attacking;
 	}
 	/*
@@ -697,6 +747,7 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 				}
 			}
 		}//end of the loop with x increasing and Y doing nothing...
+		getLandingSquares(moves);
 		return moves;
 	}// end of get Rook Moves.
 
@@ -818,6 +869,7 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 				}
 			}
 		}// end of the forth loop
+		getLandingSquares(moves);
 		return moves;
 	}
 
@@ -839,7 +891,7 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 	/*
     	Method to get the landing square of a bunch of moves...
 	*/
-	private void getLandingSquares(Stack found){
+	private void getLandingSquares(Stack<Move> found){
 		Move tmp;
 		Square landing;
 		Stack<Square> squares = new Stack<Square>();
