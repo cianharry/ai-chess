@@ -258,9 +258,9 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 			Square s = (Square)pieces.pop();
 			String tmpString = s.getName();
 			if(tmpString.contains("Knight")){
-				Stack<Square> tempK = getKnightMoves(s.getXco(), s.getYco(), s.getName());
+				Stack<Move> tempK = getKnightMoves(s.getXco(), s.getYco(), s.getName());
 				while(!tempK.empty()){
-					Square tempKnight = (Square)tempK.pop();
+					Square tempKnight = (Square)tempK.pop().getLanding();
 					piece.push(tempKnight);
 				}
 			}
@@ -291,9 +291,10 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 
 		The Knight can move in an L shape
 	*/
-	private Stack<Square> getKnightMoves(int x, int y, String piece){
+	private Stack<Move> getKnightMoves(int x, int y, String piece){
+		Square startingSquare = new Square(x, y, piece);
 		Stack<Square> moves = new Stack<Square>();
-		Stack<Square> attacking = new Stack<Square>();
+		Stack<Move> attacking = new Stack<Move>();
 
 		Square s = new Square(x+1, y+2);
 		moves.push(s);
@@ -314,13 +315,15 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 
 		for(int i=0; i<8; i++){
 			Square tmp = (Square)moves.pop();
+			Move tmpMove = new Move(startingSquare, tmp);
 			if((tmp.getXco()<0)||(tmp.getXco()>7)||(tmp.getYco()<0)||(tmp.getYco()>7)){
 
 			}
 			else if(piecePresent(((tmp.getXco()*75)+20), (((tmp.getYco()*75)+20)))){
 				if(piece.contains("White")){
 					if(checkWhiteOponent(((tmp.getXco()*75)+20), ((tmp.getYco()*75)+20))){
-						attacking.push(tmp);
+						attacking.push(tmpMove);
+						moves.push(tmp);
 					}
 					else{
 						System.out.println("Its one of our own pieces");
@@ -328,16 +331,17 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 				}
 				else{
 					if(checkBlackOponent(tmp.getXco(), tmp.getYco())){
-						attacking.push(tmp);
+						attacking.push(tmpMove);
+						moves.push(tmp);
 					}
 				}
 			}
 			else{
-				attacking.push(tmp);
+				attacking.push(tmpMove);
+				moves.push(tmp);
 			}
 		}
-		Stack<Square> tmp = attacking;
-		colorSquares(tmp);
+		colorSquares(moves);
 		return attacking;
 	}
 	/*
@@ -397,22 +401,22 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 			int tmpx = x+i;
 			int tmpy = y;
 			if(!(tmpx > 7 || tmpx < 0)){
-			Square tmp = new Square(tmpx, tmpy, piece);
-			validM = new Move(startingSquare, tmp);
-			if(!piecePresent(((tmp.getXco()*75)+20), (((tmp.getYco()*75)+20)))){
-				moves.push(validM);
-			}
-			else{
-				if(checkWhiteOponent(((tmp.getXco()*75)+20), ((tmp.getYco()*75)+20))){
+				Square tmp = new Square(tmpx, tmpy, piece);
+				validM = new Move(startingSquare, tmp);
+				if(!piecePresent(((tmp.getXco()*75)+20), (((tmp.getYco()*75)+20)))){
 					moves.push(validM);
-					break;
+				}
+				else{
+					if(checkWhiteOponent(((tmp.getXco()*75)+20), ((tmp.getYco()*75)+20))){
+						moves.push(validM);
+						break;
 					}
 					else{
-					break;
+						break;
 					}
 				}
 			}
-		}//end of the loop with x increasing and Y doing nothing...
+		} //end of the loop with x increasing and Y doing nothing...
 		for(int j=1;j < 8;j++){
 			int tmpx1 = x-j;
 			int tmpy1 = y;
@@ -474,7 +478,7 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 			}
 		}//end of the loop with x increasing and Y doing nothing...
 		return moves;
-		}// end of get Rook Moves.
+	}// end of get Rook Moves.
 
 	/*
 		A method to color the squares
@@ -490,16 +494,51 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 		}
 	}
 
+	/*
+    	Method to get the landing square of a bunch of moves...
+	*/
+	private void getLandingSquares(Stack found){
+		Move tmp;
+		Square landing;
+		Stack<Square> squares = new Stack<Square>();
+		while(!found.empty()){
+			tmp = (Move)found.pop();
+			landing = (Square)tmp.getLanding();
+			squares.push(landing);
+		}
+		colorSquares(squares);
+	}
 
-	private void CheckMate(String winner)
-    {
+	private void resetBorders(){
+		Border empty = BorderFactory.createEmptyBorder();
+		for(int i=0;i < 64;i++){
+			JPanel tmppanel = (JPanel)chessBoard.getComponent(i);
+			tmppanel.setBorder(empty);
+		}
+	}
+
+	/*
+		The method printStack takes in a Stack of Moves and prints out all possible moves.
+	*/
+	private void printStack(Stack input){
+	Move m;
+	Square s, l;
+	while(!input.empty()){
+		m = (Move)input.pop();
+		s = (Square)m.getStart();
+		l = (Square)m.getLanding();
+		System.out.println("The possible move that was found is : ("+s.getXco()+" , "+s.getYco()+"), landing at ("+l.getXco()+" , "+l.getYco()+")");
+		}
+	}
+
+
+	private void CheckMate(String winner){
         gameOver = true;
-        if (winner.contains("White"))
-        {
+        if (winner.contains("White")){
             JOptionPane.showMessageDialog(null, "White wins");
             System.exit(5);
-        } else
-        {
+		}
+		else{
             JOptionPane.showMessageDialog(null, "Black wins");
             System.exit(5);
         }
