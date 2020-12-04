@@ -327,10 +327,10 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 				}
 			}
 			else if(tmpString.contains("Rook")){
-				Stack<Move> tempP = getRookMoves(s.getXco(), s.getYco(), s.getName());
-				while(!tempP.empty()){
-					Square tempPawn = (Square)tempP.pop().getLanding();
-					piece.push(tempPawn);
+				Stack<Move> tempR = getRookMoves(s.getXco(), s.getYco(), s.getName());
+				while(!tempR.empty()){
+					Square tempRook = (Square)tempR.pop().getLanding();
+					piece.push(tempRook);
 				}
 			}
 			else if(tmpString.contains("Bishup")){
@@ -340,19 +340,58 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 					piece.push(tempBishup);
 				}
 			}
-
-			/*
-			else if(tmpString.contains("Pawn")){
-				Stack tempP = getPawnMoves(s.getXco(), s.getYco(), s.getName());
+			else{
+				Stack<Move> tempP = getWhitePawnMoves(s.getXco(), s.getYco(), s.getName());
 				while(!tempP.empty()){
-					Square tempPawn = (Square)tempP.pop();
+					Square tempPawn = (Square)tempP.pop().getLanding();
 					piece.push(tempPawn);
 				}
 			}
-			*/
 		}
 		return piece;
 	}
+	
+	private Stack<Move> getWhitePawnMoves(int x, int y, String piece){
+		Square startingSquare = new Square(x, y, piece);
+		Stack<Move> moves = new Stack<Move>();
+		Move validM, validM2, validM3, validM4;
+
+		if(startingSquare.getYco() == 1){
+			Square tmpy = new Square(x, y+1, piece);
+			Square tmpy1 = new Square(x, y+2, piece);
+			validM = new Move(startingSquare, tmpy);
+			validM2 = new Move(startingSquare, tmpy1);
+			if(!piecePresent(((tmpy.getXco()*75)+20), (((tmpy.getYco()*75)+20)))){
+				moves.push(validM);
+			}
+			else if(!piecePresent(((tmpy1.getXco()*75)+20), (((tmpy1.getYco()*75)+20)))){
+				moves.push(validM2);
+			}
+		}
+		else{
+			Square tmpy = new Square(x, y+1, piece);
+			Square tmpy2 = new Square(x-1, y+1, piece);
+			Square tmpy3 = new Square(x+1, y+1, piece);
+			validM = new Move(startingSquare, tmpy);
+			validM3 = new Move(startingSquare, tmpy2);
+			validM4 = new Move(startingSquare, tmpy3);
+			if(!piecePresent(((tmpy.getXco()*75)+20), (((tmpy.getYco()*75)+20)))){
+				moves.push(validM);
+			}
+			else{
+				if(checkWhiteOponent(((tmpy2.getXco()*75)+20), (((tmpy2.getYco()*75)+20)))){
+					moves.push(validM3);
+				}
+				else if(checkWhiteOponent(((tmpy3.getXco()*75)+20), (((tmpy3.getYco()*75)+20)))){
+					moves.push(validM4);
+				}
+			}
+			
+		}
+		getLandingSquares(moves);
+		return moves;
+	}
+
 	/*
 	Method to return all the squares that a King can move to. The King can move either one square in an x direction or
 	one square in a y direction. it can take its opponents piece but not its own piece. As seen in the below grid the Rook can either move in a horizontal direction (x changing value)
@@ -508,6 +547,7 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 				}
 			}
 		}
+		getLandingSquares(moves);
 		return moves;
 	}
 
@@ -872,7 +912,6 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 		getLandingSquares(moves);
 		return moves;
 	}
-
 
 	/*
 		A method to color the squares
