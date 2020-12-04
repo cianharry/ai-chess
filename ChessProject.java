@@ -214,6 +214,116 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 		}
 	}
 
+	/*
+		----------------------------------------------------- AI -----------------------------------------------------
+
+		When the AI Agent decides on a move, a red border shows the square from where the move started and the
+    	landing square of the move. 
+	*/
+	private void makeAIMove(){
+		resetBorders();
+		layeredPane.validate();
+		layeredPane.repaint();
+		Stack<Square> white = findWhitePieces();
+		Stack<Move> completeMoves = new Stack<Move>();
+		Move tmp;
+		Stack<Move> temporary = new Stack<Move>();
+		while(!white.empty()){
+			Square s = (Square)white.pop();
+			String tmpString = s.getName();
+			Stack<Move> tmpMoves = new Stack<Move>();
+			
+			if(tmpString.contains("King")){
+				tmpMoves = getKingMoves(s.getXco(), s.getYco(), s.getName());
+			}
+			else if(tmpString.contains("Queen")){
+				tmpMoves = getQueenMoves(s.getXco(), s.getYco(), s.getName());
+			}
+			else if(tmpString.contains("Rook")){
+				tmpMoves = getRookMoves(s.getXco(), s.getYco(), s.getName());
+			}
+			else if(tmpString.contains("Knight")){
+				tmpMoves = getKnightMoves(s.getXco(), s.getYco(), s.getName());
+			}
+			else if(tmpString.contains("Bishup")){
+				tmpMoves = getBishupMoves(s.getXco(), s.getYco(), s.getName());
+			}
+			else if(tmpString.contains("Pawn")){
+				tmpMoves = getWhitePawnMoves(s.getXco(), s.getYco(), s.getName());
+			}
+			while(!tmpMoves.empty()){
+				tmp = (Move)tmpMoves.pop();
+      			completeMoves.push(tmp);
+			}
+		}
+		temporary = completeMoves;
+		getLandingSquares(temporary);
+		printStack(temporary);
+
+		if(completeMoves.size() == 0){
+			JOptionPane.showMessageDialog(null, "Cogratulations, you have placed the AI component in a Stale Mate Position");
+			System.exit(5);
+		}
+		else{
+			System.out.println("=============================================================");
+			Stack<Move> testing = new Stack<Move>();
+			while(!completeMoves.empty()){
+				Move tmpMove = (Move)completeMoves.pop();
+				Square s1 = (Square)tmpMove.getStart();
+				Square s2 = (Square)tmpMove.getLanding();
+				System.out.println("The "+s1.getName()+" can move from ("+s1.getXco()+", "+s1.getYco()+") to the following square: ("+s2.getXco()+", "+s2.getYco()+")");
+      			testing.push(tmpMove);
+			}
+			System.out.println("=============================================================");
+			AIAgent agent = new AIAgent();
+			Border redBorder = BorderFactory.createLineBorder(Color.RED, 3);
+			Move selectedMove = agent.randomMove(testing);
+			Square startingPoint = (Square)selectedMove.getStart();
+			Square landingPoint = (Square)selectedMove.getLanding();
+			int startX1 = (startingPoint.getXco()*75)+20;
+			int startY1 = (startingPoint.getYco()*75)+20;
+			int landingX1 = (landingPoint.getXco()*75)+20;
+			int landingY1 = (landingPoint.getYco()*75)+20;
+			System.out.println("-------- Move "+startingPoint.getName()+" ("+startingPoint.getXco()+", "+startingPoint.getYco()+") to ("+landingPoint.getXco()+", "+landingPoint.getYco()+")");
+
+			Component c  = (JLabel)chessBoard.findComponentAt(startX1, startY1);
+			Container parent = c.getParent();
+			parent.remove(c);
+			int panelID = (startingPoint.getYco() * 8)+startingPoint.getXco();
+			panels = (JPanel)chessBoard.getComponent(panelID);
+			panels.setBorder(redBorder);
+			parent.validate();
+
+			Component l = chessBoard.findComponentAt(landingX1, landingY1);
+			if(l instanceof JLabel){
+				Container parentlanding = l.getParent();
+				JLabel awaitingName = (JLabel)l;
+				String agentCaptured = awaitingName.getIcon().toString();
+				if(agentCaptured.contains("King")){
+					CheckMate("White");
+				}
+				parentlanding.remove(l);
+				parentlanding.validate();
+				pieces = new JLabel( new ImageIcon(startingPoint.getName()+".png") );
+				int landingPanelID = (landingPoint.getYco()*8)+landingPoint.getXco();
+				panels = (JPanel)chessBoard.getComponent(landingPanelID);
+				panels.add(pieces);
+				panels.setBorder(redBorder);
+				layeredPane.validate();
+				layeredPane.repaint();
+			}
+			else{
+				pieces = new JLabel( new ImageIcon(startingPoint.getName()+".png") );
+				int landingPanelID = (landingPoint.getYco()*8)+landingPoint.getXco();
+				panels = (JPanel)chessBoard.getComponent(landingPanelID);
+				panels.add(pieces);
+				panels.setBorder(redBorder);
+				layeredPane.validate();
+				layeredPane.repaint();
+			}
+			whiteTurn = false;
+		}
+	}
 
 	/*
 		This method checks if there is a piece present on a particular square.
@@ -350,7 +460,7 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 		}
 		return piece;
 	}
-	
+
 	private Stack<Move> getWhitePawnMoves(int x, int y, String piece){
 		Square startingSquare = new Square(x, y, piece);
 		Stack<Move> moves = new Stack<Move>();
@@ -911,6 +1021,43 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 		}// end of the forth loop
 		getLandingSquares(moves);
 		return moves;
+	}
+	/*
+		a method to salculates the score of each move
+	*/
+	public int setScore(int x, int y, int lastX, int lastY){
+		int score = 0;
+		String colour = null;
+		if(!checkWhiteOponent(lastX, lastY)){
+			colour="Black";
+		}
+		else{
+			colour="White";
+		}
+		try{
+			Component c1 = chessBoard.findComponentAt(x,y);
+			JLabel piece = (JLabel)c1;
+			String tmp1 = piece.getIcon().toString();
+			if(tmp1.contains(colour+"Pawn")){
+				score = 1;
+			}
+			else if(tmp1.contains(colour+"Bishup")||tmp1.contains(colour+"Knight")){
+				score = 3;
+			}
+			else if(tmp1.contains(colour+"Rook")){
+				score = 5;
+			}
+			else if(tmp1.contains(colour+"Queen")){
+				score = 9;
+			}
+			else if(tmp1.contains(colour+"King")){
+				score = 10;
+			}
+
+		} catch(Exception e){
+			return 0;
+		}
+		return score;
 	}
 
 	/*
