@@ -1242,6 +1242,7 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 		Boolean playable = false;
 
 		if(whiteTurn){
+			//makeAIMove();
 			if(pieceName.contains("White")){
 				playable = true;
 			}
@@ -1615,142 +1616,103 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 					}
 				}
 				else if(pieceName.equals("BlackPawn")){
-					if(startY == 6){
-						if((startX == (e.getX()/75))&&((((e.getY()/75)-startY)== -1)||((e.getY()/75)-startY)== -2))
-						{
-							if((((e.getY()/75)-startY)==-2)){
-								if((!piecePresent(e.getX(), (e.getY())))&&(!piecePresent(e.getX(), (e.getY()+75)))){
-									validMove = true;
-								}
-								else{
-									validMove = false;
-								}
-							}
-							else{
-								if((!piecePresent(e.getX(), (e.getY())))){
-									validMove = true;
-								}
-								else{
-									validMove = false;
-								}
-							}
-						}
-						else{
+					if((newX<0)||(newX >7)||(newY < 0)||(newY > 7)){
 						validMove = false;
-						}
 					}
-					else{
-						if((startX-1 >=0)||(startX+1 <=7))
-						{
-							// LOOK OVER TAKING PAWNS TO THE LEFT & RIGHT
-							if((piecePresent(e.getX(), (e.getY())))&&((((newX == (startX+1)&&(startX+1<=7)))||((newX == (startX-1))&&(startX-1 >=0)))))
-							{
-								if(checkBlackOponent(e.getX(), e.getY()))
-								{
+					// at starting position
+					if(startY==6){
+						if(((yMovement==1)||(yMovement == 2))&&(startY > landingY)&&(xMovement ==0)){
+							if(yMovement == 2){
+								if((!piecePresent(e.getX(), e.getY()))&&(!piecePresent(e.getX(), (e.getY()+75)))){
 									validMove = true;
-									if(newY == 0){
-										promotion = true;
-									}
-								}
-								else{
-									validMove = false;
 								}
 							}
 							else{
 								if(!piecePresent(e.getX(), e.getY())){
-									if((startX == newX)&&(newY-startY)==-1){
-										if(newY == 0){
-											promotion = true;
-										}
-										validMove = true;
-									}
-									else{
-										validMove = false;
-									}
-								}
-								else{
-									validMove = false;
+									validMove = true;
 								}
 							}
 						}
-						else{
-							validMove = false;
+						else if((yMovement == 1)&&(startY > landingY)&&(xMovement == 1)){
+							if(piecePresent(e.getX(), e.getY())){
+								if(checkBlackOponent(e.getX(), e.getY())){
+									validMove = true;
+								}
+							}
+						}
+					}
+					// not at starying postion
+					else{
+						if(((yMovement==1))&&(startY > landingY)&&(xMovement ==0)){
+							if(!piecePresent(e.getX(), e.getY())){
+								validMove = true;
+								if(landingY==0){
+									promotion = true;
+								}
+							}
+						}
+						else if((yMovement == 1)&&(startY > landingY)&&(xMovement == 1)){
+							if(piecePresent(e.getX(), e.getY())){
+								if(checkBlackOponent(e.getX(), e.getY())){
+									validMove = true;
+									if(landingY==0){
+										promotion = true;
+									}
+								}
+							}
 						}
 					}
 				}
 				else if(pieceName.equals("WhitePawn")){
-					/*
-						Pawn at original starting square
-					*/
-					if(startY == 1)
-					{
-						if((startX == (e.getX()/75))&&((((e.getY()/75)-startY)==1)||((e.getY()/75)-startY)==2))
-						{
-							if((((e.getY()/75)-startY)==2)){
-								if((!piecePresent(e.getX(), (e.getY())))&&(!piecePresent(e.getX(), (e.getY()-75)))){
+					if((newX<0)||(newX >7)||(newY < 0)||(newY > 7)){
+						validMove = false;
+					}
+					// at starting position
+					if(startY==1){
+						if(((yMovement==1)||(yMovement == 2))&&(startY < landingY)&&(xMovement ==0)){
+							if(yMovement == 2){
+								if((!piecePresent(e.getX(), e.getY()))&&(!piecePresent(e.getX(), (e.getY()+75)))){
 									validMove = true;
-								}
-								else{
-									validMove = false;
 								}
 							}
 							else{
-								if((!piecePresent(e.getX(), (e.getY()))))
-								{
+								if(!piecePresent(e.getX(), e.getY())){
 									validMove = true;
-								}
-								else{
-									validMove = false;
 								}
 							}
 						}
-						else{
-							validMove = false;
-						}
-					}
-					/*
-						Pawn not at original starting square
-					*/
-					else{
-						if((startX-1 >=0)||(startX +1 <=7))
-						{
-							if((piecePresent(e.getX(), (e.getY())))&&((((newX == (startX+1)&&(startX+1<=7)))||((newX == (startX-1))&&(startX-1 >=0)))))
-							{
+						else if((yMovement == 1)&&(startY < landingY)&&(xMovement == 1)){
+							if(piecePresent(e.getX(), e.getY())){
 								if(checkWhiteOponent(e.getX(), e.getY())){
 									validMove = true;
-									if(startY == 6){
+								}
+							}
+						}
+					}
+					// not at staring postion
+					else{
+						if(((yMovement==1))&&(startY < landingY)&&(xMovement ==0)){
+							if(!piecePresent(e.getX(), e.getY())){
+								validMove = true;
+								if(landingY==7){
+									success = true;
+								}
+							}
+						}
+						else if((yMovement == 1)&&(startY < landingY)&&(xMovement == 1)){
+							if(piecePresent(e.getX(), e.getY())){
+								if(checkWhiteOponent(e.getX(), e.getY())){
+									validMove = true;
+									if(landingY==7){
 										success = true;
 									}
 								}
-								else{
-									validMove = false;
-								}
 							}
-							else{
-								if(!piecePresent(e.getX(), (e.getY()))){
-									if((startX == newX)&&(newY-startY)==1){
-										if(startY == 6){
-											success = true;
-										}
-										validMove = true;
-									}
-									else{
-										validMove = false;
-									}
-								}
-								else{
-									validMove = false;
-								}
-							}
-						}
-						else{
-							validMove = false;
 						}
 					}
 				}
 			}
 		}
-
 		
 		if(!validMove){
 			int location=0;
@@ -1820,7 +1782,7 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 
     }
     public void mouseMoved(MouseEvent e) {
-   }
+   	}
     public void mouseEntered(MouseEvent e){
 
     }
@@ -1838,5 +1800,5 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
         frame.setResizable(true);
         frame.setLocationRelativeTo( null );
         frame.setVisible(true);
-     }
+    }
 }
